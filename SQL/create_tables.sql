@@ -6,3 +6,10 @@ CREATE TABLE dim_city(
 	latitude NUMERIC,
 	timezone INT
 );
+
+CREATE TABLE dim_weather_condition(
+	weather_id INT PRIMARY KEY,
+	main_group VARCHAR(50),
+	description VARCHAR(50),
+	icon VARCHAR(15)
+);
