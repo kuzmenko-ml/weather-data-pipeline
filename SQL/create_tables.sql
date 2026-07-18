@@ -35,3 +35,10 @@ CREATE TABLE fact_weather(
 	visibility INT,
 	clouds_percentage INT
 );
+
+CREATE SCHEMA raw;
+CREATE TABLE raw.weather_content(
+	raw_id SERIAL PRIMARY KEY,
+	raw_content JSONB,
+	extracted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
