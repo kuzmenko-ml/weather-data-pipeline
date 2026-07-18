@@ -1,6 +1,8 @@
 import os
 import requests
 from dotenv import load_dotenv
+import psycopg2
+import json
 
 load_dotenv()
 
@@ -23,3 +25,33 @@ class WeatherELPipeline:
         except requests.exceptions.RequestException as e:
             print(f"Помилка при запиті до API: {e}")
             return None
+        
+    def insert_raw_data(self, data):
+        if data is None:
+            print("Немає даних для запису в базу.")
+            return
+        
+        try:
+            print("Підключаємось до бази даних...")
+            conn = psycopg2.connect(
+                host=self.db_host,
+                database=self.db_name,
+                user=self.db_user,
+                password=self.db_password,
+                port=self.db_port
+            )
+
+            cur = conn.cursor()
+            print("Успішно підключено до бази даних!")
+
+            json_data_string = json.dumps(data)
+            sql_query = "INSERT INTO raw.weather_content (raw_content) VALUES (%s);"
+            cur.execute(sql_query, (json_data_string,))
+            conn.commit()
+            print("Дані успішно записані в таблицю raw.weather_content!")
+
+            cur.close()
+            conn.close()
+            
+        except Exception as e:
+            print(f"Помилка при роботі з базою даних: {e}")
