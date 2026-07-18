@@ -12,3 +12,14 @@ class WeatherELPipeline:
         self.db_user = os.getenv("DB_USER")
         self.db_password = os.getenv("DB_PASSWORD")
         self.db_port = os.getenv("DB_PORT")
+
+    def fetch_weather(self, city_name="Kyiv"):
+        url = f"https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={self.api_key}&units=metric"
+
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Помилка при запиті до API: {e}")
+            return None
