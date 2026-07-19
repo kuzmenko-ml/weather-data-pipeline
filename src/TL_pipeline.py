@@ -10,19 +10,9 @@ class WeatherTLPipeline:
         self.db_port = os.getenv("DB_PORT")
 
     
-    def get_raw_data(self):
+    def get_raw_data(self, conn):
         try:
-            print("Підключаємось до бази даних...")
-            conn = psycopg2.connect(
-                host=self.db_host,
-                database=self.db_name,
-                user=self.db_user,
-                password=self.db_password,
-                port=self.db_port
-            )
-
             cur = conn.cursor()
-            print("Успішно підключено до бази даних!")
 
             sql_query_metadata = "SELECT last_processed_timestamp FROM metadata.pipeline_state WHERE pipeline_name = 'weather_transform'"
             cur.execute(sql_query_metadata)
@@ -34,9 +24,9 @@ class WeatherTLPipeline:
             raw_data = cur.fetchall()
 
             cur.close()
-            conn.close()
 
             return raw_data
 
         except Exception as e:
             print(f"Помилка при роботі з базою даних: {e}")
+            return []
