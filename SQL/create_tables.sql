@@ -42,3 +42,12 @@ CREATE TABLE raw.weather_content(
 	raw_content JSONB,
 	extracted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE SCHEMA metadata;
+CREATE TABLE metadata.pipeline_state(
+	pipeline_name VARCHAR(25) PRIMARY KEY,
+	last_processed_timestamp TIMESTAMP
+);
+
+INSERT INTO metadata.pipeline_state (pipeline_name, last_processed_timestamp) 
+VALUES ('weather_transform', '2026-01-01 00:00:00');
