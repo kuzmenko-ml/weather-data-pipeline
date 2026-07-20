@@ -23,7 +23,7 @@ def run_pipeline():
 
     conn = None
     try:
-        logging.INFO("Підключаємось до бази даних...")
+        logging.info("Підключаємось до бази даних...")
         conn = psycopg2.connect(
             host=os.getenv("DB_HOST"),
             database=os.getenv("DB_NAME"),
@@ -47,11 +47,11 @@ def run_pipeline():
         raw_data = tl_pipeline.get_raw_data(conn)
         if raw_data:
             logging.info(f"Зчитано {len(raw_data)} нових рядків для трансформації.")
+            tl_pipeline.procces_dim_city(raw_data, conn)
+            tl_pipeline.procces_dim_weather_condition(raw_data,conn)
+            tl_pipeline.procces_fact_weather(raw_data,conn)
         else:
             logging.warning("Немає нових даних для обробки.")
-        tl_pipeline.procces_dim_city(raw_data, conn)
-        tl_pipeline.procces_dim_weather_condition(raw_data,conn)
-        tl_pipeline.procces_fact_weather(raw_data,conn)
         
     except Exception as e:
         logging.error(f"[Критична помилка в оркестраторі]: {e}")
