@@ -2,9 +2,20 @@ from EL_pipeline import WeatherELPipeline
 from TL_pipeline import WeatherTLPipeline
 import psycopg2
 import os
+import logging
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[
+        logging.FileHandler("pipeline.log", encoding="utf-8"),
+        logging.StreamHandler()  
+    ]
+)
 
 def run_pipeline():
     el_pipeline = WeatherELPipeline()
@@ -12,7 +23,7 @@ def run_pipeline():
 
     conn = None
     try:
-        print("Підключаємось до бази даних...")
+        logging.INFO("Підключаємось до бази даних...")
         conn = psycopg2.connect(
             host=os.getenv("DB_HOST"),
             database=os.getenv("DB_NAME"),
@@ -20,35 +31,35 @@ def run_pipeline():
             password=os.getenv("DB_PASSWORD"),
             port=os.getenv("DB_PORT")
         )
-        print("Успішно підключено!")
+        logging.info("Успішно підключено!")
 
-        print("--- STARTING WEATHER EL PIPELINE ---")
+        logging.info("--- ПОЧАТОК WEATHER EL PIPELINE ---")
         raw_data_from_api = el_pipeline.fetch_weather("Kyiv")
 
         if raw_data_from_api:
             el_pipeline.insert_raw_data(raw_data_from_api, conn)
-            print("--- EL PIPELINE SUCCESSFULLY FINISHED ---")
+            logging.info("--- EL PIPELINE УСПІШНО ЗАВЕРШЕНО! ---")
         else:
-            print("--- EL PIPELINE FAILED (No data extracted) ---")
+            logging.warning("--- EL PIPELINE НЕ СПРАЦЮВАВ! (немає сирих даних) ---")
             return
         
-        print("\n--- STARTING WEATHER TL PIPELINE ---")
+        logging.info("--- ПОЧАТОК WEATHER TL PIPELINE ---")
         raw_data = tl_pipeline.get_raw_data(conn)
         if raw_data:
-            print(f"Зчитано {len(raw_data)} нових рядків для трансформації.")
+            logging.info(f"Зчитано {len(raw_data)} нових рядків для трансформації.")
         else:
-            print("Немає нових даних для обробки.")
+            logging.warning("Немає нових даних для обробки.")
         tl_pipeline.procces_dim_city(raw_data, conn)
         tl_pipeline.procces_dim_weather_condition(raw_data,conn)
         tl_pipeline.procces_fact_weather(raw_data,conn)
         
     except Exception as e:
-        print(f"\n[Критична помилка в оркестраторі]: {e}")
+        logging.error(f"[Критична помилка в оркестраторі]: {e}")
         
     finally:
         if conn:
             conn.close()
-            print("\nПідключення до бази даних успішно закрито.")
+            logging.info("Підключення до бази даних успішно закрито.")
 
 if __name__ == "__main__": 
     run_pipeline()
