@@ -3,6 +3,7 @@ import requests
 from dotenv import load_dotenv
 import psycopg2
 import json
+import logging
 
 load_dotenv()
 
@@ -21,14 +22,15 @@ class WeatherELPipeline:
         try:
             response = requests.get(url)
             response.raise_for_status()
+            logging.info("Успішний запит до API.")
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"Помилка при запиті до API: {e}")
+            logging.error(f"Помилка при запиті до API: {e}")
             return None
         
     def insert_raw_data(self, data, conn):
         if data is None:
-            print("Немає даних для запису в базу.")
+            logging.warning("Немає даних для запису в базу.")
             return
         
         cur = None
@@ -39,12 +41,12 @@ class WeatherELPipeline:
             sql_query = "INSERT INTO raw.weather_content (raw_content) VALUES (%s);"
             cur.execute(sql_query, (json_data_string,))
             conn.commit()
-            print("Дані успішно записані в таблицю raw.weather_content!")
+            logging.info("Дані успішно записані в таблицю raw.weather_content!")
 
             cur.close()
             
         except Exception as e:
-            print(f"Помилка при роботі з базою даних: {e}")
+            logging.error(f"Помилка при роботі з базою даних: {e}")
             if conn:
                 conn.rollback()
         
