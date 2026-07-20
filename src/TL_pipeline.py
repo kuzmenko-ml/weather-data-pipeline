@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 class WeatherTLPipeline:
     def __init__(self):
@@ -157,7 +158,8 @@ class WeatherTLPipeline:
                 weather_json = row[1]
 
                 city_id = weather_json.get("id")
-                record_date = weather_json.get("dt")
+                record_date_raw = weather_json.get("dt")
+                record_date = datetime.fromtimestamp(record_date_raw) if record_date_raw else None
 
                 if (city_id, record_date) in existing_records:
                     continue
@@ -175,8 +177,10 @@ class WeatherTLPipeline:
                     wind_speed = weather_json.get("wind").get("speed")
                     wind_deg = weather_json.get("wind").get("deg")
                     wind_gust = weather_json.get("wind").get("gust")
-                    sunrise = weather_json.get("sys").get("sunrise")
-                    sunset = weather_json.get("sys").get("sunset")
+                    sunrise_raw = weather_json.get("sys").get("sunrise")
+                    sunrise = datetime.fromtimestamp(sunrise_raw) if sunrise_raw else None
+                    sunset_raw = weather_json.get("sys").get("sunset")
+                    sunset = datetime.fromtimestamp(sunset_raw) if sunset_raw else None
                     visibility = weather_json.get("visibility")
                     clouds = weather_json.get("clouds").get("all")
 
