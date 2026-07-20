@@ -83,3 +83,59 @@ class WeatherTLPipeline:
         finally:
             if cur:
                 cur.close()
+
+    def procces_dim_weather_condition(self, raw_data, conn):
+        try:
+            cur = conn.cursor()
+
+            sql_query_condition = "SELECT weather_id FROM public.dim_weather_condition"
+            cur.execute(sql_query_condition)
+            list_existing_condition = cur.fetchall()
+            new_conditions = []
+
+            existing_condition = []
+            for row in list_existing_condition:
+                existing_condition.append(row[0])
+
+            for row in raw_data:
+                weather_json = row[1]
+
+                weather_list = weather_json.get("weather", [])
+                if not weather_list:
+                    continue
+
+                weather_data = weather_list[0] 
+                condition_id = weather_data.get("id")
+
+                if condition_id in existing_condition:
+                    continue
+                else:
+                    main_group = weather_data.get("main")
+                    description = weather_data.get("description")
+                    icon = weather_data.get("icon")
+
+                    new_data = (condition_id, main_group, description, icon)
+                    new_conditions.append(new_data)
+
+                    existing_condition.append(condition_id)
+
+            if len(new_conditions) > 0:
+                sql_insert_condition = """
+                    INSERT INTO public.dim_weather_condition (condition_id, main_group, description, icon)
+                    VALUES (%s, %s, %s, %s);
+                """
+                cur.executemany(sql_insert_condition, new_conditions)
+
+                conn.commit()
+                print(f"Успішно додано нових condition до dim_weather_condition: {len(new_conditions)}")
+            else:
+                print("Нових погодних умов для додавання не виявлено.")
+
+        except Exception as e:
+            print(f"Помилка в методу procces_dim_weather_condition: {e}")
+            if conn:
+                conn.rollback()
+
+        finally:
+            if cur:
+                cur.close()
