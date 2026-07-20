@@ -38,6 +38,9 @@ def run_pipeline():
             print(f"Зчитано {len(raw_data)} нових рядків для трансформації.")
         else:
             print("Немає нових даних для обробки.")
+        tl_pipeline.procces_dim_city(raw_data, conn)
+        tl_pipeline.procces_dim_weather_condition(raw_data,conn)
+        tl_pipeline.procces_fact_weather(raw_data,conn)
         
     except Exception as e:
         print(f"\n[Критична помилка в оркестраторі]: {e}")
