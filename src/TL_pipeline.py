@@ -139,3 +139,69 @@ class WeatherTLPipeline:
         finally:
             if cur:
                 cur.close()
+
+    def procces_fact_weather(self, raw_data, conn):
+        try:
+            cur = conn.cursor()
+
+            sql_query = "SELECT city_id, record_date FROM public.fact_weather"
+            cur.execute(sql_query)
+            existing_records_db = cur.fetchall()
+            new_weather_record = []
+
+            existing_records = []
+            for row in existing_records_db:
+                existing_records.append((row[0], row[1]))
+
+            for row in raw_data:
+                weather_json = row[1]
+
+                city_id = weather_json.get("id")
+                record_date = weather_json.get("dt")
+
+                if (city_id, record_date) in existing_records:
+                    continue
+                else:
+                    weather_list = weather_json.get("weather", [])
+                    weather_id = weather_list[0].get("id") if weather_list else None
+                    temp = weather_json.get("main").get("temp")
+                    temp_feels_like = weather_json.get("main").get("feels_like")
+                    temp_min = weather_json.get("main").get("temp_min")
+                    temp_max = weather_json.get("main").get("temp_max")
+                    pressure = weather_json.get("main").get("pressure")
+                    humidity = weather_json.get("main").get("humidity")
+                    sea_level = weather_json.get("main").get("sea_level") 
+                    ground_level = weather_json.get("main").get("ground_level")
+                    wind_speed = weather_json.get("wind").get("speed")
+                    wind_deg = weather_json.get("wind").get("deg")
+                    wind_gust = weather_json.get("wind").get("gust")
+                    sunrise = weather_json.get("sys").get("sunrise")
+                    sunset = weather_json.get("sys").get("sunset")
+                    visibility = weather_json.get("visibility")
+                    clouds = weather_json.get("clouds").get("all")
+
+                    new_records_data = (city_id,record_date,weather_id,temp,temp_feels_like,temp_min,temp_max,pressure,humidity,
+                                        sea_level,ground_level,wind_speed,wind_deg,wind_gust,sunrise,sunset,visibility,clouds)
+                    
+                    new_weather_record.append(new_records_data)
+                    existing_records.append((city_id, record_date))
+
+                if len(new_weather_record) > 0:
+                    sql_insert = """
+                        INSERT INTO public.fact_weather (city_id,record_date,weather_id,temp,temp_feels_like,temp_min,temp_max,pressure,
+                                            humidity,sea_level,ground_level,wind_speed,wind_deg,wind_gust,sunrise,sunset,visibility,clouds)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                    """
+                    cur.executemany(sql_insert, new_weather_record)
+                    conn.commit()
+                    print(f"Успішно!")
+                else:
+                    print("Нових погодних записів для додавання не виявлено.")
+        except Exception as e:
+            print(f"Помилка в методу procces_fact_weather: {e}")
+            if conn:
+                conn.rollback()
+
+        finally:
+            if cur:
+                cur.close()
