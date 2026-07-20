@@ -121,7 +121,7 @@ class WeatherTLPipeline:
 
             if len(new_conditions) > 0:
                 sql_insert_condition = """
-                    INSERT INTO public.dim_weather_condition (condition_id, main_group, description, icon)
+                    INSERT INTO public.dim_weather_condition (weather_id, main_group, description, icon)
                     VALUES (%s, %s, %s, %s);
                 """
                 cur.executemany(sql_insert_condition, new_conditions)
@@ -188,8 +188,8 @@ class WeatherTLPipeline:
 
                 if len(new_weather_record) > 0:
                     sql_insert = """
-                        INSERT INTO public.fact_weather (city_id,record_date,weather_id,temp,temp_feels_like,temp_min,temp_max,pressure,
-                                            humidity,sea_level,ground_level,wind_speed,wind_deg,wind_gust,sunrise,sunset,visibility,clouds)
+                        INSERT INTO public.fact_weather (city_id,record_date,weather_id,temperature,temp_feels_like,temp_min,temp_max,pressure,
+                                            humidity,pressure_sea_level,pressure_ground_level,wind_speed,wind_direction_deg,wind_gust,sunrise,sunset,visibility,clouds_percentage)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
                     """
                     cur.executemany(sql_insert, new_weather_record)
