@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+import logging
 
 class WeatherTLPipeline:
     def __init__(self):
@@ -8,7 +9,6 @@ class WeatherTLPipeline:
         self.db_user = os.getenv("DB_USER")
         self.db_password = os.getenv("DB_PASSWORD")
         self.db_port = os.getenv("DB_PORT")
-
     
     def get_raw_data(self, conn):
         try:
@@ -28,7 +28,7 @@ class WeatherTLPipeline:
             return raw_data
 
         except Exception as e:
-            print(f"Помилка при роботі з базою даних: {e}")
+            logging.error(f"Помилка при роботі з базою даних: {e}")
             return []
         
     def procces_dim_city(self, raw_data, conn):
@@ -72,12 +72,12 @@ class WeatherTLPipeline:
                 cur.executemany(sql_insert_city, new_cities_to_insert)
 
                 conn.commit()
-                print(f"Успішно додано нових міст до dim_city: {len(new_cities_to_insert)}")
+                logging.info(f"Успішно додано нових міст до dim_city: {len(new_cities_to_insert)}")
             else:
-                print("Нових міст для додавання не виявлено.")
+                logging.warning("Нових міст для додавання не виявлено.")
 
         except Exception as e:
-            print(f"Помилка в методу procces_dim_city: {e}")
+            logging.error(f"Помилка в методу procces_dim_city: {e}")
             if conn:
                 conn.rollback()
 
@@ -128,12 +128,12 @@ class WeatherTLPipeline:
                 cur.executemany(sql_insert_condition, new_conditions)
 
                 conn.commit()
-                print(f"Успішно додано нових condition до dim_weather_condition: {len(new_conditions)}")
+                logging.info(f"Успішно додано нових condition до dim_weather_condition: {len(new_conditions)}")
             else:
-                print("Нових погодних умов для додавання не виявлено.")
+                logging.warning("Нових погодних умов для додавання не виявлено.")
 
         except Exception as e:
-            print(f"Помилка в методу procces_dim_weather_condition: {e}")
+            logging.error(f"Помилка в методу procces_dim_weather_condition: {e}")
             if conn:
                 conn.rollback()
 
@@ -198,11 +198,11 @@ class WeatherTLPipeline:
                 """
                 cur.executemany(sql_insert, new_weather_record)
                 conn.commit()
-                print(f"Успішно!")
+                logging.info(f"Успішно додано запис про погоду!")
             else:
-                print("Нових погодних записів для додавання не виявлено.")
+                logging.warning("Нових погодних записів для додавання не виявлено.")
         except Exception as e:
-            print(f"Помилка в методу procces_fact_weather: {e}")
+            logging.error(f"Помилка в методу procces_fact_weather: {e}")
             if conn:
                 conn.rollback()
 
