@@ -190,17 +190,17 @@ class WeatherTLPipeline:
                     new_weather_record.append(new_records_data)
                     existing_records.append((city_id, record_date))
 
-                if len(new_weather_record) > 0:
-                    sql_insert = """
-                        INSERT INTO public.fact_weather (city_id,record_date,weather_id,temperature,temp_feels_like,temp_min,temp_max,pressure,
-                                            humidity,pressure_sea_level,pressure_ground_level,wind_speed,wind_direction_deg,wind_gust,sunrise,sunset,visibility,clouds_percentage)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-                    """
-                    cur.executemany(sql_insert, new_weather_record)
-                    conn.commit()
-                    print(f"Успішно!")
-                else:
-                    print("Нових погодних записів для додавання не виявлено.")
+            if len(new_weather_record) > 0:
+                sql_insert = """
+                    INSERT INTO public.fact_weather (city_id,record_date,weather_id,temperature,temp_feels_like,temp_min,temp_max,pressure,
+                                        humidity,pressure_sea_level,pressure_ground_level,wind_speed,wind_direction_deg,wind_gust,sunrise,sunset,visibility,clouds_percentage)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                """
+                cur.executemany(sql_insert, new_weather_record)
+                conn.commit()
+                print(f"Успішно!")
+            else:
+                print("Нових погодних записів для додавання не виявлено.")
         except Exception as e:
             print(f"Помилка в методу procces_fact_weather: {e}")
             if conn:
