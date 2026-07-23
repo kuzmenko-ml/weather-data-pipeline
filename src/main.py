@@ -1,9 +1,13 @@
+import os
+import sys
+import logging
+import psycopg2
+from dotenv import load_dotenv
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from EL_pipeline import WeatherELPipeline
 from TL_pipeline import WeatherTLPipeline
-import psycopg2
-import os
-import logging
-from dotenv import load_dotenv
 
 load_dotenv()
 
